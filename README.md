@@ -1,32 +1,34 @@
+**English** | [Español](README.es.md)
+
 # dotfiles
 
-Mi configuración de entorno de desarrollo (PowerShell + Windows Terminal + WSL),
-lista para restaurar en un equipo nuevo o recién formateado en minutos.
+My development environment setup (PowerShell + Windows Terminal + WSL),
+ready to restore on a new or freshly formatted machine in minutes.
 
-## Qué incluye
+## What's included
 
-- **PowerShell**: perfil con [Starship](https://starship.rs), autocompletado
-  predictivo (PSReadLine), iconos de archivos (Terminal-Icons), navegación
-  rápida (`zoxide`) y alias estilo Unix (`ll`, `la`, `which`, `touch`, `grep`).
-- **Windows Terminal**: tema de color **Catppuccin Mocha**, fuente
-  `JetBrainsMono Nerd Font` (variante Mono) y cursor tipo barra vertical.
-- **WSL (bash)**: la misma configuración de Starship/zoxide/alias, para que
-  se vea y se sienta igual que en Windows.
-- **Starship**: un único `starship.toml` compartido entre Windows y WSL, con
-  badges para Python, Node.js, TypeScript, React, Vue, Express, FastAPI,
-  Java, C/C++, C#, Docker, y un aviso cuando hay un `.env` en la carpeta.
-  También muestra la hora y la canción sonando en Spotify.
-  - React/Vue/Express/FastAPI solo se evalúan dentro de WSL/Linux (ahí es
-    donde realmente se programa); en Windows nativo no hacen nada.
-  - El badge de Spotify solo funciona en Windows (lee la sesión de medios
-    del sistema vía un watcher en segundo plano, ver abajo) y agrega
-    ~150-200ms a cada render del prompt en Windows (arrancar un proceso
-    tiene ese costo ahí). Si se siente lento, comenta la línea
-    `${custom.spotify}` en `shared/starship.toml`.
+- **PowerShell**: profile with [Starship](https://starship.rs), predictive
+  autocompletion (PSReadLine), file icons (Terminal-Icons), fast navigation
+  (`zoxide`), and Unix-style aliases (`ll`, `la`, `which`, `touch`, `grep`).
+- **Windows Terminal**: **Catppuccin Mocha** color scheme, `JetBrainsMono
+  Nerd Font` (Mono variant), and a vertical bar cursor.
+- **WSL (bash)**: the same Starship/zoxide/alias setup, so it looks and
+  feels the same as on Windows.
+- **Starship**: a single `starship.toml` shared between Windows and WSL,
+  with badges for Python, Node.js, TypeScript, React, Vue, Express, FastAPI,
+  Java, C/C++, C#, Docker, and a warning when a `.env` file is present.
+  It also shows the time and the currently playing Spotify track.
+  - React/Vue/Express/FastAPI are only evaluated inside WSL/Linux (that's
+    where the actual coding happens); they're no-ops on native Windows.
+  - The Spotify badge only works on Windows (it reads the system media
+    session via a background watcher, see below) and adds ~150-200ms to
+    every prompt render on Windows (spawning a process costs that much
+    there). If it feels slow, comment out the `${custom.spotify}` line in
+    `shared/starship.toml`.
 
-## Instalación en un equipo nuevo
+## Installing on a new machine
 
-### 1. Clona el repo
+### 1. Clone the repo
 
 ```powershell
 git clone https://github.com/juancarlosSH/dotfiles.git $HOME\dotfiles
@@ -39,49 +41,50 @@ cd $HOME\dotfiles
 ./windows/install.ps1
 ```
 
-Esto instala (via `winget`) la Nerd Font, Starship, zoxide y GitHub CLI;
-instala el módulo `Terminal-Icons`; copia el perfil de PowerShell a `$PROFILE`;
-copia `starship.toml`; aplica el tema/fuente/cursor a Windows Terminal; y
-registra el watcher de Spotify para que arranque solo (acceso directo en la
-carpeta de Inicio — no usa Task Scheduler porque eso pide admin).
+This installs (via `winget`) the Nerd Font, Starship, zoxide, and GitHub
+CLI; installs the `Terminal-Icons` module; copies the PowerShell profile to
+`$PROFILE`; copies `starship.toml`; applies the theme/font/cursor to
+Windows Terminal; and registers the Spotify watcher to start automatically
+(a shortcut in the Startup folder — not Task Scheduler, since that needs
+admin rights).
 
-Es **idempotente**: se puede correr varias veces sin duplicar nada, y hace
-backup automático de tu `$PROFILE` y del `settings.json` de Windows Terminal
-antes de tocarlos.
+It's **idempotent**: safe to run multiple times without duplicating
+anything, and it automatically backs up your `$PROFILE` and Windows
+Terminal's `settings.json` before touching them.
 
-Cierra y vuelve a abrir Windows Terminal al terminar.
+Close and reopen Windows Terminal when it's done.
 
-### 3. WSL (opcional, si usas alguna distro)
+### 3. WSL (optional, if you use a distro)
 
 ```bash
-bash /mnt/c/Users/<tu-usuario>/dotfiles/wsl/install.sh
+bash /mnt/c/Users/<your-user>/dotfiles/wsl/install.sh
 ```
 
-Instala Starship y zoxide sin necesitar `sudo` (quedan en `~/.local/bin`),
-enlaza el mismo `starship.toml` y agrega el bloque de configuración a tu
-`~/.bashrc` (sin duplicar si ya existe).
+Installs Starship and zoxide without needing `sudo` (they land in
+`~/.local/bin`), links the same `starship.toml`, and appends the config
+block to your `~/.bashrc` (without duplicating it if it's already there).
 
-## Estructura
+## Structure
 
 ```
 dotfiles/
 ├── windows/
-│   ├── install.ps1                     # bootstrap completo de Windows
-│   ├── apply-terminal-settings.ps1     # solo aplica tema a Windows Terminal
-│   ├── spotify-watcher.ps1             # lee Spotify (SMTC) cada 5s -> cache
+│   ├── install.ps1                     # full Windows bootstrap
+│   ├── apply-terminal-settings.ps1     # only applies the Windows Terminal theme
+│   ├── spotify-watcher.ps1             # reads Spotify (SMTC) every 5s -> cache
 │   └── PowerShell/
 │       └── Microsoft.PowerShell_profile.ps1
 ├── wsl/
-│   ├── install.sh                      # bootstrap completo de WSL
-│   └── bashrc.snippet.sh               # bloque que se agrega a ~/.bashrc
+│   ├── install.sh                      # full WSL bootstrap
+│   └── bashrc.snippet.sh               # block appended to ~/.bashrc
 └── shared/
-    └── starship.toml                   # tema Catppuccin Mocha + badges del prompt
+    └── starship.toml                   # Catppuccin Mocha theme + prompt badges
 ```
 
-## Actualizar el repo con cambios locales
+## Updating the repo with local changes
 
-Si modificas tu perfil de PowerShell o `starship.toml` localmente y quieres
-guardar el cambio en el repo:
+If you tweak your PowerShell profile or `starship.toml` locally and want to
+save the change back to the repo:
 
 ```powershell
 Copy-Item $PROFILE ./windows/PowerShell/Microsoft.PowerShell_profile.ps1 -Force

@@ -47,7 +47,12 @@ function Get-NowPlaying {
         $propsTask = $session.TryGetMediaPropertiesAsync()
         $props = Wait-WinRtTask $propsTask ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMediaProperties])
         if (-not $props.Artist -and -not $props.Title) { return "" }
-        return "$($props.Artist) - $($props.Title)"
+        # El icono va horneado aqui (no en starship.toml): si el archivo
+        # queda vacio (nada sonando), el badge debe desaparecer del todo, y
+        # eso solo pasa si $output es la UNICA cosa dentro del grupo [...]
+        # del format -- cualquier texto fijo ahi sobrevive aunque $output
+        # este vacio (bug verificado, mismo que con React/Vue/etc).
+        return "🎵 $($props.Artist) - $($props.Title)"
     } catch {
         return ""
     }

@@ -201,7 +201,7 @@ when = true
 shell = ["cmd"]
 command = 'type %USERPROFILE%\.cache\spotify_now_playing.txt'
 style = "fg:green"
-format = "[🎵 $output ]($style)"
+format = "[$output]($style) "
 
 [time]
 disabled = false

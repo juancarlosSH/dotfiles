@@ -53,10 +53,15 @@ function Get-NowPlaying {
     }
 }
 
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+
 while ($true) {
     $nowPlaying = Get-NowPlaying
     try {
-        Set-Content -Path $cacheFile -Value $nowPlaying -Encoding utf8 -NoNewline -ErrorAction Stop
+        # Set-Content -Encoding utf8 escribe BOM en Windows PowerShell 5.1,
+        # y ese BOM se cuela como caracter invisible en el prompt. Escribir
+        # directo con WriteAllText evita el BOM.
+        [System.IO.File]::WriteAllText($cacheFile, $nowPlaying, $utf8NoBom)
     } catch { }
     Start-Sleep -Seconds 5
 }

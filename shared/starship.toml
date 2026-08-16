@@ -15,8 +15,19 @@ $python\
 $rust\
 $golang\
 $dotnet\
+$java\
+$c\
 [](fg:blue bg:base)\
+${custom.typescript}\
+${custom.react}\
+${custom.vue}\
+${custom.express}\
+${custom.fastapi}\
+${custom.docker}\
+${custom.dotenv}\
 $fill\
+${custom.spotify}\
+$time\
 $cmd_duration\
 $line_break\
 $character"""
@@ -88,6 +99,7 @@ format = '[ $symbol $branch ]($style)'
 style = "bg:surface2 fg:text"
 format = '[$all_status$ahead_behind ]($style)'
 
+# --- Lenguajes (chip azul continuo) -------------------------------------
 [nodejs]
 symbol = ""
 style = "bg:blue fg:base"
@@ -112,6 +124,90 @@ format = '[ $symbol ($version) ]($style)'
 symbol = "󰪮"
 style = "bg:blue fg:base"
 format = '[ $symbol ($version) ]($style)'
+
+[java]
+style = "bg:blue fg:base"
+format = '[ $symbol ($version) ]($style)'
+
+[c]
+style = "bg:blue fg:base"
+format = '[ $symbol ($version) ]($style)'
+detect_extensions = ["c", "h", "cpp", "hpp", "cc", "cxx"]
+
+# --- Frameworks (pastillas independientes, solo aparecen si se detectan) -
+# TypeScript: presencia de tsconfig.json (sin costo de shell)
+[custom.typescript]
+detect_files = ["tsconfig.json"]
+style = "bg:lavender fg:base"
+format = "[ 󰛦 TS ]($style)"
+
+# React / Vue / Express / FastAPI: solo corren dentro de WSL/Linux (os =
+# "linux"), asi nunca disparan un spawn de WSL desde Windows nativo (medido:
+# ~4s en frio). "detect_files" es el gate barato (existencia, sin shell); el
+# grep real va DENTRO de "command" (no "when": detect_files+when se combinan
+# con OR en Starship, no con AND, asi que "when" quedaria ignorado). Si el
+# grep no matchea, "&&" corta la ejecucion, no hay output, y el modulo se
+# oculta solo. El grupo [...] debe contener SOLO $output, sin texto fijo ni
+# espacios de padding: cualquier caracter literal dentro del mismo grupo
+# sobrevive aunque $output este vacio (el chip de color queda "flotando"
+# vacio) -- verificado. Por eso el icono Y el padding van dentro del echo.
+[custom.react]
+os = "linux"
+detect_files = ["package.json"]
+command = 'grep -qi "\"react\"" package.json && echo " 󰜈 React "'
+format = "[$output]($style) "
+style = "bg:sky fg:base"
+
+[custom.vue]
+os = "linux"
+detect_files = ["package.json"]
+command = 'grep -qi "\"vue\"" package.json && echo " 󰡄 Vue "'
+format = "[$output]($style) "
+style = "bg:green fg:base"
+
+[custom.express]
+os = "linux"
+detect_files = ["package.json"]
+command = 'grep -qi "\"express\"" package.json && echo " 󰎙 Express "'
+format = "[$output]($style) "
+style = "bg:overlay1 fg:base"
+
+[custom.fastapi]
+os = "linux"
+detect_files = ["requirements.txt", "pyproject.toml"]
+command = 'grep -qi fastapi requirements.txt pyproject.toml 2>/dev/null && echo " 󱐋 FastAPI "'
+format = "[$output]($style) "
+style = "bg:teal fg:base"
+
+[custom.docker]
+detect_files = ["Dockerfile", "docker-compose.yml", "docker-compose.yaml", ".dockerignore", "compose.yml", "compose.yaml"]
+style = "bg:sapphire fg:base"
+format = "[ 🐳 Docker ]($style)"
+
+# .env presente: aviso claro, color de atencion
+[custom.dotenv]
+detect_files = [".env"]
+style = "bg:red fg:base"
+format = "[ 🔐 .env ]($style)"
+
+# --- Spotify (solo Windows: lee cache que llena un watcher en background) -
+# "when = true" fuerza que el modulo siempre se evalue (no hay archivo que
+# detectar). Sin comillas en la ruta: Starship rompe el re-quoting si el
+# comando trae comillas dobles (bug verificado). %USERPROFILE% no tiene
+# espacios en esta cuenta, asi que funciona sin comillas.
+[custom.spotify]
+os = "windows"
+when = true
+shell = ["cmd"]
+command = 'type %USERPROFILE%\.cache\spotify_now_playing.txt'
+style = "fg:green"
+format = "[🎵 $output ]($style)"
+
+[time]
+disabled = false
+time_format = "%H:%M:%S"
+style = "fg:subtext0"
+format = "[🕐 $time ]($style)"
 
 [cmd_duration]
 min_time = 500

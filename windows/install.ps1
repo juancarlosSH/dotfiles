@@ -70,5 +70,25 @@ Write-Ok "starship.toml copiado a $starshipConfigDir"
 Write-Step "Aplicando tema a Windows Terminal"
 & "$PSScriptRoot\apply-terminal-settings.ps1"
 
+# --- 7. Watcher de Spotify (badge del prompt) --------------------------------
+# Usa un acceso directo en la carpeta de Inicio (no Task Scheduler: registrar
+# tareas programadas pide permisos de administrador; Inicio no).
+Write-Step "Registrando watcher de Spotify (arranque automatico)"
+$startupDir = [Environment]::GetFolderPath("Startup")
+$shortcutPath = "$startupDir\SpotifyNowPlayingWatcher.lnk"
+$watcherScript = "$RepoRoot\windows\spotify-watcher.ps1"
+$WshShell = New-Object -ComObject WScript.Shell
+$shortcut = $WshShell.CreateShortcut($shortcutPath)
+$shortcut.TargetPath = "powershell.exe"
+$shortcut.Arguments = "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$watcherScript`""
+$shortcut.WindowStyle = 7
+$shortcut.Description = "Actualiza ~/.cache/spotify_now_playing.txt para el prompt de Starship"
+$shortcut.Save()
+Write-Ok "Acceso directo creado en Inicio"
+
+Write-Step "Iniciando el watcher de Spotify para esta sesion"
+Start-Process powershell.exe -ArgumentList "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$watcherScript`"" -WindowStyle Hidden
+Write-Ok "Watcher corriendo (se reiniciara solo en cada inicio de sesion)"
+
 Write-Host "`nListo. Cierra y vuelve a abrir Windows Terminal para ver los cambios." -ForegroundColor Yellow
 Write-Host "Si tienes WSL, corre tambien: wsl bash -c ""$($RepoRoot -replace '\\','/' -replace '^C:','/mnt/c')/wsl/install.sh""" -ForegroundColor Yellow

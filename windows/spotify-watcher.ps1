@@ -52,7 +52,14 @@ function Get-NowPlaying {
         # eso solo pasa si $output es la UNICA cosa dentro del grupo [...]
         # del format -- cualquier texto fijo ahi sobrevive aunque $output
         # este vacio (bug verificado, mismo que con React/Vue/etc).
-        return "🎵 $($props.Artist) - $($props.Title)"
+        #
+        # El icono se construye por su codepoint (no como caracter literal
+        # en el archivo): Windows PowerShell 5.1 sin BOM UTF-8 en el .ps1
+        # asume la codepage del sistema para parsear el script, y corrompe
+        # cualquier emoji/caracter no-ASCII escrito directo en el codigo
+        # fuente (bug real detectado: "🎵" se convertia en "ðŸŽµ").
+        $musicNote = [char]::ConvertFromUtf32(0x1F3B5)
+        return "$musicNote $($props.Artist) - $($props.Title)"
     } catch {
         return ""
     }

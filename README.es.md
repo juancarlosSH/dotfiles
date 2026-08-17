@@ -13,7 +13,9 @@ lista para restaurar en un equipo nuevo o recién formateado en minutos.
 - **Windows Terminal**: tema de color **Catppuccin Mocha**, fuente
   `JetBrainsMono Nerd Font` (variante Mono) y cursor tipo barra vertical.
 - **WSL (bash)**: la misma configuración de Starship/zoxide/alias, para que
-  se vea y se sienta igual que en Windows.
+  se vea y se sienta igual que en Windows, más [ble.sh](https://github.com/akinomyoga/ble.sh)
+  (resaltado de sintaxis y un line editor mejorado) y `bash-completion`
+  (autocompletado de comandos, flags, branches de git, etc.).
 - **Starship**: un único `starship.toml` compartido entre Windows y WSL, con
   badges para Python, Node.js, TypeScript, React, Vue, Express, FastAPI,
   Java, C/C++, C#, Docker, y un aviso cuando hay un `.env` en la carpeta.
@@ -59,9 +61,12 @@ Cierra y vuelve a abrir Windows Terminal al terminar.
 bash /mnt/c/Users/<tu-usuario>/dotfiles/wsl/install.sh
 ```
 
-Instala Starship y zoxide sin necesitar `sudo` (quedan en `~/.local/bin`),
-enlaza el mismo `starship.toml` y agrega el bloque de configuración a tu
-`~/.bashrc` (sin duplicar si ya existe).
+Instala Starship, zoxide y ble.sh sin necesitar `sudo` (quedan en
+`~/.local/bin` / `~/.local/share`), enlaza el mismo `starship.toml` y
+agrega el bloque de configuración a tu `~/.bashrc` (sin duplicar si ya
+existe). `bash-completion` sí necesita `sudo` (es un paquete de `apt`); el
+script lo instala con `sudo apt install` si `sudo` está disponible, y si
+no, solo avisa para instalarlo manualmente.
 
 ## Estructura
 

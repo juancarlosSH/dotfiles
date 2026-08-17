@@ -22,6 +22,28 @@ else
     echo "    (ya existe)"
 fi
 
+echo "==> Instalando ble.sh (resaltado de sintaxis + line editor)"
+if [ ! -f "$HOME/.local/share/blesh/ble.sh" ]; then
+    tmpdir="$(mktemp -d)"
+    curl -sSL https://github.com/akinomyoga/ble.sh/releases/download/nightly/ble-nightly.tar.xz | tar xJf - -C "$tmpdir"
+    bash "$tmpdir"/ble-nightly/ble.sh --install "$HOME/.local/share"
+    rm -rf "$tmpdir"
+else
+    echo "    (ya existe)"
+fi
+
+echo "==> Instalando bash-completion"
+if ! dpkg -s bash-completion >/dev/null 2>&1; then
+    if command -v sudo >/dev/null 2>&1; then
+        sudo apt-get update -qq && sudo apt-get install -y -qq bash-completion
+    else
+        echo "    Aviso: no hay 'sudo' disponible, no se pudo instalar bash-completion automaticamente."
+        echo "    Instalalo manualmente con: sudo apt install bash-completion"
+    fi
+else
+    echo "    (ya existe)"
+fi
+
 echo "==> Aplicando starship.toml"
 mkdir -p "$HOME/.config"
 cp -f "$REPO_ROOT/shared/starship.toml" "$HOME/.config/starship.toml"

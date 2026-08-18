@@ -44,7 +44,7 @@ $scheme = [PSCustomObject]@{
     brightWhite         = "#A6ADC8"
 }
 
-if (-not $settings.schemes) {
+if ($settings.PSObject.Properties.Name -notcontains "schemes") {
     $settings | Add-Member -MemberType NoteProperty -Name schemes -Value @()
 }
 $existingIdx = -1

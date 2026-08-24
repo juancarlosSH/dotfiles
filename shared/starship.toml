@@ -1,15 +1,12 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
+# Prompt minimal: sin bloques/pastillas powerline (agnoster), solo texto e
+# iconos de color sobre el fondo de la terminal. Dos lineas: info arriba,
+# el simbolo de entrada abajo.
 format = """
-[](surface0)\
-$os\
-$username\
-[](bg:surface1 fg:surface0)\
 $directory\
-[](fg:surface1 bg:surface2)\
 $git_branch\
 $git_status\
-[](fg:surface2 bg:blue)\
 $nodejs\
 $python\
 $rust\
@@ -17,7 +14,6 @@ $golang\
 $dotnet\
 $java\
 $c\
-[](fg:blue bg:base)\
 ${custom.typescript}\
 ${custom.react}\
 ${custom.vue}\
@@ -65,23 +61,10 @@ crust     = "#11111b"
 [fill]
 symbol = " "
 
-[os]
-disabled = false
-style = "bg:surface0 fg:text"
-
-[os.symbols]
-Windows = "󰍲"
-
-[username]
-show_always = true
-style_user = "bg:surface0 fg:text"
-style_root = "bg:surface0 fg:red"
-format = '[ $user ]($style)'
-
 [directory]
-style = "bg:surface1 fg:text"
-format = "[ 󰉋 $path ]($style)"
-truncation_length = 3
+style = "fg:blue bold"
+format = "[󰉋 $path]($style) "
+truncation_length = 5
 truncate_to_repo = true
 
 [directory.substitutions]
@@ -92,54 +75,69 @@ truncate_to_repo = true
 
 [git_branch]
 symbol = ""
-style = "bg:surface2 fg:text"
-format = '[ $symbol $branch ]($style)'
+style = "fg:mauve"
+format = '[$symbol $branch]($style) '
 
+# $all_status = conflicted + stashed + deleted + renamed + modified + staged
+# + untracked (orden fijo de Starship). $ahead_behind = commits arriba/abajo
+# del remoto. "up_to_date" es explicito (icono, no vacio) para que se note
+# cuando la rama esta sincronizada.
 [git_status]
-style = "bg:surface2 fg:text"
-format = '[$all_status$ahead_behind ]($style)'
+style = "fg:red"
+format = '[$all_status$ahead_behind]($style) '
+conflicted = "=${count} "
+stashed = "📦${count} "
+deleted = "✘${count} "
+renamed = "»${count} "
+modified = "!${count} "
+staged = "+${count} "
+untracked = "?${count} "
+ahead = "⇡${count} "
+behind = "⇣${count} "
+diverged = "⇕⇡${ahead_count}⇣${behind_count} "
+up_to_date = "✓ "
 
-# --- Lenguajes (chip azul continuo) -------------------------------------
+# --- Lenguajes (icono + version, sin fondo) -----------------------------
 [nodejs]
 symbol = ""
-style = "bg:blue fg:base"
-format = '[ $symbol ($version) ]($style)'
+style = "fg:green"
+format = '[$symbol $version]($style) '
 
 [python]
 symbol = ""
-style = "bg:blue fg:base"
-format = '[ $symbol ($version) ]($style)'
+style = "fg:yellow"
+format = '[$symbol $version]($style) '
 
 [rust]
 symbol = ""
-style = "bg:blue fg:base"
-format = '[ $symbol ($version) ]($style)'
+style = "fg:peach"
+format = '[$symbol $version]($style) '
 
 [golang]
 symbol = ""
-style = "bg:blue fg:base"
-format = '[ $symbol ($version) ]($style)'
+style = "fg:sky"
+format = '[$symbol $version]($style) '
 
 [dotnet]
 symbol = "󰪮"
-style = "bg:blue fg:base"
-format = '[ $symbol ($version) ]($style)'
+style = "fg:mauve"
+format = '[$symbol $version]($style) '
 
 [java]
-style = "bg:blue fg:base"
-format = '[ $symbol ($version) ]($style)'
+style = "fg:maroon"
+format = '[$symbol $version]($style) '
 
 [c]
-style = "bg:blue fg:base"
-format = '[ $symbol ($version) ]($style)'
+style = "fg:blue"
+format = '[$symbol $version]($style) '
 detect_extensions = ["c", "h", "cpp", "hpp", "cc", "cxx"]
 
-# --- Frameworks (pastillas independientes, solo aparecen si se detectan) -
+# --- Frameworks (icono + texto de color, solo aparecen si se detectan) --
 # TypeScript: presencia de tsconfig.json (sin costo de shell)
 [custom.typescript]
 detect_files = ["tsconfig.json"]
-style = "bg:lavender fg:base"
-format = "[ 󰛦 TS ]($style)"
+style = "fg:lavender"
+format = "[󰛦 TS]($style) "
 
 # React / Vue / Express / FastAPI: solo corren dentro de WSL/Linux (os =
 # "linux"), asi nunca disparan un spawn de WSL desde Windows nativo (medido:
@@ -149,13 +147,10 @@ format = "[ 󰛦 TS ]($style)"
 # ignorado). "detect_folders" cubre monorepos (backend/frontend/etc. con su
 # propio package.json): un nombre de carpeta tipico ya destraba el gate, y el
 # comando busca el package.json real hasta 2 niveles adentro (find), sin
-# node_modules. "find ... | xargs -r grep" en vez de "grep $(find ...)": si
-# find no encuentra nada, $(...) se expande vacio y grep sin argumentos se
-# queda leyendo stdin -- cuelga el prompt. xargs -r evita correr grep cuando
-# no hay input. Si el grep no matchea, "&&" corta la ejecucion, no hay
+# node_modules. Si el grep no matchea, "&&" corta la ejecucion, no hay
 # output, y el modulo se oculta solo. El grupo [...] debe contener SOLO
 # $output, sin texto fijo ni espacios de padding: cualquier caracter literal
-# dentro del mismo grupo sobrevive aunque $output este vacio (el chip de
+# dentro del mismo grupo sobrevive aunque $output este vacio (el texto de
 # color queda "flotando" vacio) -- verificado. Por eso el icono Y el padding
 # van dentro del echo.
 #
@@ -169,44 +164,44 @@ format = "[ 󰛦 TS ]($style)"
 os = "linux"
 detect_files = ["package.json"]
 detect_folders = ["frontend", "client", "web", "app"]
-command = 'f=$(find . -maxdepth 2 -not -path "*/node_modules/*" -iname package.json 2>/dev/null); [ -n "$f" ] && printf "%s\n" "$f" | xargs -d "\n" grep -qi "\"react\"" 2>/dev/null && echo " 󰜈 React "'
+command = 'f=$(find . -maxdepth 2 -not -path "*/node_modules/*" -iname package.json 2>/dev/null); [ -n "$f" ] && printf "%s\n" "$f" | xargs -d "\n" grep -qi "\"react\"" 2>/dev/null && echo "󰜈 React"'
 format = "[$output]($style) "
-style = "bg:sky fg:base"
+style = "fg:sky"
 
 [custom.vue]
 os = "linux"
 detect_files = ["package.json"]
 detect_folders = ["frontend", "client", "web", "app"]
-command = 'f=$(find . -maxdepth 2 -not -path "*/node_modules/*" -iname package.json 2>/dev/null); [ -n "$f" ] && printf "%s\n" "$f" | xargs -d "\n" grep -qi "\"vue\"" 2>/dev/null && echo " 󰡄 Vue "'
+command = 'f=$(find . -maxdepth 2 -not -path "*/node_modules/*" -iname package.json 2>/dev/null); [ -n "$f" ] && printf "%s\n" "$f" | xargs -d "\n" grep -qi "\"vue\"" 2>/dev/null && echo "󰡄 Vue"'
 format = "[$output]($style) "
-style = "bg:green fg:base"
+style = "fg:green"
 
 [custom.express]
 os = "linux"
 detect_files = ["package.json"]
 detect_folders = ["backend", "server", "api"]
-command = 'f=$(find . -maxdepth 2 -not -path "*/node_modules/*" -iname package.json 2>/dev/null); [ -n "$f" ] && printf "%s\n" "$f" | xargs -d "\n" grep -qi "\"express\"" 2>/dev/null && echo " 󰎙 Express "'
+command = 'f=$(find . -maxdepth 2 -not -path "*/node_modules/*" -iname package.json 2>/dev/null); [ -n "$f" ] && printf "%s\n" "$f" | xargs -d "\n" grep -qi "\"express\"" 2>/dev/null && echo "󰎙 Express"'
 format = "[$output]($style) "
-style = "bg:overlay1 fg:base"
+style = "fg:overlay2"
 
 [custom.fastapi]
 os = "linux"
 detect_files = ["requirements.txt", "pyproject.toml"]
 detect_folders = ["backend", "server", "api"]
-command = 'f=$(find . -maxdepth 2 -not -path "*/node_modules/*" \( -iname requirements.txt -o -iname pyproject.toml \) 2>/dev/null); [ -n "$f" ] && printf "%s\n" "$f" | xargs -d "\n" grep -qi fastapi 2>/dev/null && echo " 󱐋 FastAPI "'
+command = 'f=$(find . -maxdepth 2 -not -path "*/node_modules/*" \( -iname requirements.txt -o -iname pyproject.toml \) 2>/dev/null); [ -n "$f" ] && printf "%s\n" "$f" | xargs -d "\n" grep -qi fastapi 2>/dev/null && echo "󱐋 FastAPI"'
 format = "[$output]($style) "
-style = "bg:teal fg:base"
+style = "fg:teal"
 
 [custom.docker]
 detect_files = ["Dockerfile", "docker-compose.yml", "docker-compose.yaml", ".dockerignore", "compose.yml", "compose.yaml"]
-style = "bg:sapphire fg:base"
-format = "[ 🐳 Docker ]($style)"
+style = "fg:sapphire"
+format = "[🐳 Docker]($style) "
 
 # .env presente: aviso claro, color de atencion
 [custom.dotenv]
 detect_files = [".env"]
-style = "bg:red fg:base"
-format = "[ 🔐 .env ]($style)"
+style = "fg:red"
+format = "[🔐 .env]($style) "
 
 # --- Spotify (solo Windows: lee cache que llena un watcher en background) -
 # "when = true" fuerza que el modulo siempre se evalue (no hay archivo que
@@ -229,12 +224,12 @@ format = "[$output]($style) "
 disabled = false
 time_format = "%H:%M:%S"
 style = "fg:subtext0"
-format = "[🕐 $time ]($style)"
+format = "[🕐 $time]($style) "
 
 [cmd_duration]
 min_time = 500
 style = "fg:peach"
-format = "[  $duration ]($style)"
+format = "[ $duration]($style) "
 
 [character]
 success_symbol = "[❯](bold green)"

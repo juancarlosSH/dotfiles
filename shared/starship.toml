@@ -143,39 +143,57 @@ format = "[ 󰛦 TS ]($style)"
 
 # React / Vue / Express / FastAPI: solo corren dentro de WSL/Linux (os =
 # "linux"), asi nunca disparan un spawn de WSL desde Windows nativo (medido:
-# ~4s en frio). "detect_files" es el gate barato (existencia, sin shell); el
-# grep real va DENTRO de "command" (no "when": detect_files+when se combinan
-# con OR en Starship, no con AND, asi que "when" quedaria ignorado). Si el
-# grep no matchea, "&&" corta la ejecucion, no hay output, y el modulo se
-# oculta solo. El grupo [...] debe contener SOLO $output, sin texto fijo ni
-# espacios de padding: cualquier caracter literal dentro del mismo grupo
-# sobrevive aunque $output este vacio (el chip de color queda "flotando"
-# vacio) -- verificado. Por eso el icono Y el padding van dentro del echo.
+# ~4s en frio). "detect_files"/"detect_folders" son el gate barato (existencia,
+# sin shell); el grep real va DENTRO de "command" (no "when": detect_files+when
+# se combinan con OR en Starship, no con AND, asi que "when" quedaria
+# ignorado). "detect_folders" cubre monorepos (backend/frontend/etc. con su
+# propio package.json): un nombre de carpeta tipico ya destraba el gate, y el
+# comando busca el package.json real hasta 2 niveles adentro (find), sin
+# node_modules. "find ... | xargs -r grep" en vez de "grep $(find ...)": si
+# find no encuentra nada, $(...) se expande vacio y grep sin argumentos se
+# queda leyendo stdin -- cuelga el prompt. xargs -r evita correr grep cuando
+# no hay input. Si el grep no matchea, "&&" corta la ejecucion, no hay
+# output, y el modulo se oculta solo. El grupo [...] debe contener SOLO
+# $output, sin texto fijo ni espacios de padding: cualquier caracter literal
+# dentro del mismo grupo sobrevive aunque $output este vacio (el chip de
+# color queda "flotando" vacio) -- verificado. Por eso el icono Y el padding
+# van dentro del echo.
+#
+# OJO con "find | xargs -r": si find no encuentra nada, xargs -r simplemente
+# NO corre grep y sale con exit 0 (exito) -- indistinguible de "grep matcheo".
+# Eso rompe el "&&" (falso positivo verificado: FastAPI aparecia sin haber
+# ningun requirements.txt/pyproject.toml en el repo). Por eso primero se
+# junta la lista de archivos en una variable y se comprueba "[ -n ... ]"
+# ANTES de correr grep -- asi "no hay archivos" da exit 1 de verdad.
 [custom.react]
 os = "linux"
 detect_files = ["package.json"]
-command = 'grep -qi "\"react\"" package.json && echo " 󰜈 React "'
+detect_folders = ["frontend", "client", "web", "app"]
+command = 'f=$(find . -maxdepth 2 -not -path "*/node_modules/*" -iname package.json 2>/dev/null); [ -n "$f" ] && printf "%s\n" "$f" | xargs -d "\n" grep -qi "\"react\"" 2>/dev/null && echo " 󰜈 React "'
 format = "[$output]($style) "
 style = "bg:sky fg:base"
 
 [custom.vue]
 os = "linux"
 detect_files = ["package.json"]
-command = 'grep -qi "\"vue\"" package.json && echo " 󰡄 Vue "'
+detect_folders = ["frontend", "client", "web", "app"]
+command = 'f=$(find . -maxdepth 2 -not -path "*/node_modules/*" -iname package.json 2>/dev/null); [ -n "$f" ] && printf "%s\n" "$f" | xargs -d "\n" grep -qi "\"vue\"" 2>/dev/null && echo " 󰡄 Vue "'
 format = "[$output]($style) "
 style = "bg:green fg:base"
 
 [custom.express]
 os = "linux"
 detect_files = ["package.json"]
-command = 'grep -qi "\"express\"" package.json && echo " 󰎙 Express "'
+detect_folders = ["backend", "server", "api"]
+command = 'f=$(find . -maxdepth 2 -not -path "*/node_modules/*" -iname package.json 2>/dev/null); [ -n "$f" ] && printf "%s\n" "$f" | xargs -d "\n" grep -qi "\"express\"" 2>/dev/null && echo " 󰎙 Express "'
 format = "[$output]($style) "
 style = "bg:overlay1 fg:base"
 
 [custom.fastapi]
 os = "linux"
 detect_files = ["requirements.txt", "pyproject.toml"]
-command = 'grep -qi fastapi requirements.txt pyproject.toml 2>/dev/null && echo " 󱐋 FastAPI "'
+detect_folders = ["backend", "server", "api"]
+command = 'f=$(find . -maxdepth 2 -not -path "*/node_modules/*" \( -iname requirements.txt -o -iname pyproject.toml \) 2>/dev/null); [ -n "$f" ] && printf "%s\n" "$f" | xargs -d "\n" grep -qi fastapi 2>/dev/null && echo " 󱐋 FastAPI "'
 format = "[$output]($style) "
 style = "bg:teal fg:base"
 
